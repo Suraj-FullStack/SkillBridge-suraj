@@ -1,2 +1,0 @@
-# SkillBridge-suraj
-App Development 
