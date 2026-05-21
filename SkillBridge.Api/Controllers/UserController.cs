@@ -1,0 +1,22 @@
+using Microsoft.AspNetCore.Mvc;
+
+namespace SkillBridge.Api.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public class UserController : ControllerBase
+    {
+        private readonly IUserRepository _userRepository;
+        public UserController(IUserRepository userRepository)
+        {
+            _userRepository = userRepository;
+        }
+        [HttpPost("create")]
+        public async Task<ActionResult<string>> CreateUser([FromBody] CreateUserRequestDto request)
+        {
+            var result = await _userRepository.CreateUserAsync(request);
+            return result;
+        }
+    }
+}
+
