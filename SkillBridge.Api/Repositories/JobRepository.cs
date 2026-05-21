@@ -1,17 +1,57 @@
+using Microsoft.EntityFrameworkCore;
+
+
 public class JobRepository : IJobRepository
 {
+    private readonly SkillBridgeDbContext _context;
+    public JobRepository(SkillBridgeDbContext context)
+    {
+        _context = context;
+    }
     public async Task<IEnumerable<JobDto>> GetJobListAsync()
     {
-         return new List<JobDto>
+        var joblist = await _context.Jobs.ToListAsync();
+        // select * from Jobs
+        if (joblist != null)
         {
-            new JobDto { Id = 1, Name = "Software Engineer", Description = "Develop and maintain software applications" },
-            new JobDto { Id = 2, Name = "Data Scientist", Description = "Analyze and interpret complex data" },
-            new JobDto { Id = 3, Name = "Product Manager", Description = "Manage the development and launch of products" }
-        };
-            
-
+            return joblist.Select(job => new JobDto
+            {
+                Id = job.Id,
+                Title = job.Title,
+                Description = job.Description,
+                Company = job.Company,
+                Location = job.Location,
+                JobType = job.JobType,
+                Maximumsalary = job.MaximumSalary,
+                Minimumsalary = job.MinimumSalary,
+                PostedDate = job.PostedDate,
+                DeadLineDate = job.DeadLineDate,
+                isActive = job.isActive
+            }).ToList();
+        }
+        return new List<JobDto>();
     }
-    
-    
-    
+    public async Task<JobDto> GetJobByIdAsync(int id)
+    {
+        var job = await _context.Jobs.FirstOrDefaultAsync(j => j.Id == id);
+        // select * from Jobs where Id = id
+        if (job != null)
+        {
+            return new JobDto
+            {
+                Id = job.Id,
+                Title = job.Title,
+                Description = job.Description,
+                Company = job.Company,
+                Location = job.Location,
+                JobType = job.JobType,
+                Maximumsalary = job.MaximumSalary,
+                Minimumsalary = job.MinimumSalary,
+                PostedDate = job.PostedDate,
+                DeadLineDate = job.DeadLineDate,
+                isActive = job.isActive
+            };
+        }
+        return new JobDto();
+    }
 }
