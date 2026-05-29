@@ -1,12 +1,21 @@
+
 using Microsoft.EntityFrameworkCore;
+using SkillBridge.Api.Entities;
 
 
 public class JobRepository : IJobRepository
 {
     private readonly SkillBridgeDbContext _context;
+    private readonly ICurrentUserHelper? _currentUserHelper;
+    public JobRepository(SkillBridgeDbContext context, ICurrentUserHelper currentUserHelper)
+    {
+        _context = context;
+        _currentUserHelper = currentUserHelper;
+    }
     public JobRepository(SkillBridgeDbContext context)
     {
         _context = context;
+        _currentUserHelper = null;
     }
     public async Task<IEnumerable<JobDto>> GetJobListAsync()
     {
@@ -54,4 +63,25 @@ public class JobRepository : IJobRepository
         }
         return new JobDto();
     }
+    public async Task<int> CreateJobAsync(CreateJobRequestDto request)
+    {
+        var job = new Job
+        {
+            Title = request.Title,
+            Description = request.Description,
+            Company = request.Company,
+            Location = request.Location,
+            MinimumSalary = (double)request.MinimumSalary,
+            MaximumSalary = (double)request.MaximumSalary,
+            JobType = request.JobType,
+            DeadLineDate = request.DeadlineDate,
+            PostedDate = DateTime.UtcNow,
+            isActive = true,
+            PostedById = _currentUserHelper?.userId ?? 0
+        };
+        _context.Jobs.Add(job);
+        await _context.SaveChangesAsync();
+        return job.Id;
+    }
+
 }
