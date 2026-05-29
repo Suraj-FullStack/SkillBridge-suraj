@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 namespace SkillBridge.Api.Controllers;
 [ApiController]
@@ -23,5 +24,12 @@ public class JobController : ControllerBase
             return NotFound();
         }
         return Ok(job);
+    }
+    [HttpPost,Route("Create")]
+    [Authorize]
+    public async Task<ActionResult<JobDto>> CreateJob(CreateJobRequestDto request)
+    {
+        var JobId = await _jobRepository.CreateJobAsync(request);
+        return CreatedAtAction(nameof(GetJobById), new { id = JobId }, null);
     }
 }

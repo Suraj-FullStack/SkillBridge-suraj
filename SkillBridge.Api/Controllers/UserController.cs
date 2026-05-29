@@ -17,6 +17,19 @@ namespace SkillBridge.Api.Controllers
             var result = await _userRepository.CreateUserAsync(request);
             return result;
         }
+        [HttpPost("login")]
+        public async Task<ActionResult<LoginResponseDto>> Login([FromBody] LoginRequestDto request)
+        {
+            var result = await _userRepository.LoginAsync(request);
+            return result;
+        }
+
+        [HttpPost("profile")]
+        public async Task<ActionResult<CreateUserProfileResponseDto>> CreateUserProfile([FromBody] CreateUserProfileRequestDto request)
+        {
+            var result = await _userRepository.CreateUserProfileAsync(request);
+            return result;
+        }
     }
 }
 
