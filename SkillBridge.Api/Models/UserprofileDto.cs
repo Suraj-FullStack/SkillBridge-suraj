@@ -10,9 +10,10 @@ public class CreateUserProfileRequestDto
     public string Bio { get; set; }
     public string Location { get; set; }
     public string ContactNumber { get; set; }
-    public IFormFile ResumeFile { get; set; }
+    public IFormFile? ResumeFile { get; set; }
 }
 public class CreateUserProfileResponseDto
 {
-
+public string Message { get; set; } = "User profile created successfully.";
+public bool Success { get; set; } = true;
 }

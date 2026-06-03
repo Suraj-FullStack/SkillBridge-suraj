@@ -1,5 +1,6 @@
-- [ ] Fix docker-compose platform specifier
-- [ ] `docker compose up -d`
-- [ ] Verify SQL container is healthy / logs show ready
-- [ ] Re-run `dotnet ef database update` from SkillBridge.Api
+# TODO
+- [x] Fix SkillBridge.Api/Program.cs: register JwtTokenHelper and add JWT Bearer authentication/authorization middleware (UseAuthentication before UseAuthorization).
+- [ ] (Optional) Fix SkillBridge.Api/Controllers/JobController.cs: remove .Result and use async/await.
+- [x] Build solution (dotnet build) and confirm no startup/compile/DI errors.
+
 

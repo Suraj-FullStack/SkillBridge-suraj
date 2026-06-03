@@ -15,10 +15,8 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserHelper, CurrentUserHelper>();
 builder.Services.AddScoped<IJobRepository, JobRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<JwtTokenHelper, JwtTokenHelper>();
-
-// JWT helper (used by UserRepository)
-builder.Services.AddSingleton<JwtTokenHelper>();
+builder.Services.AddScoped<JwtTokenHelper>();
+builder.Services.AddScoped<IFileUploadHelper, FileUploadHelper>();
 
 builder.Services.AddDbContext<SkillBridgeDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -61,6 +59,7 @@ app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseStaticFiles();
 
 app.MapControllers();
 
