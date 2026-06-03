@@ -6,14 +6,16 @@ public class UserRepository : IUserRepository
     private readonly SkillBridgeDbContext _context;
     private readonly JwtTokenHelper _jwtTokenHelper;
     private readonly ICurrentUserHelper _currentUserHelper;
+    private readonly IFileUploadHelper _fileUploadHelper;
 
-    public UserRepository(SkillBridgeDbContext context, JwtTokenHelper jwtTokenHelper, ICurrentUserHelper currentUserHelper)
+    public UserRepository(SkillBridgeDbContext context, JwtTokenHelper jwtTokenHelper, ICurrentUserHelper currentUserHelper, IFileUploadHelper fileUploadHelper)
     {
         _context = context;
         _jwtTokenHelper = jwtTokenHelper;
         _currentUserHelper = currentUserHelper;
+        _fileUploadHelper = fileUploadHelper;
     }
-    public Task<string> CreateUserAsync(CreateUserRequestDto req_user)
+    public async Task<string> CreateUserAsync(CreateUserRequestDto req_user)
     {
         User user1 = new User();
         user1.Name = req_user.Name;
@@ -24,16 +26,8 @@ public class UserRepository : IUserRepository
         user1.IsActive = true;
 
         _context.Users.Add(user1);
-        var result = _context.SaveChanges();
-        if (result > 0)
-        {
-            return Task.FromResult("User created successfully!");
-        }
-        else
-        {
-            return Task.FromResult("Failed to create user.");
-        }
-
+        var result = await _context.SaveChangesAsync();
+        return result > 0 ? "User created successfully!" : "Failed to create user.";
     }
     public async Task<LoginResponseDto> LoginAsync(LoginRequestDto request)
     {
@@ -56,16 +50,21 @@ public class UserRepository : IUserRepository
         };
     }
 
-    public Task<CreateUserProfileResponseDto> CreateUserProfileAsync(CreateUserProfileRequestDto request)
+    public async Task<CreateUserProfileResponseDto> CreateUserProfileAsync(CreateUserProfileRequestDto request)
     {
-        var profile = new Userprofile
+        string resumePath = string.Empty;
+        if (request.ResumeFile != null)
+        {
+            resumePath = await _fileUploadHelper.UploadResumeAsync(request.ResumeFile);
+        }
+        Userprofile profile = new Userprofile
         {
             UserID = _currentUserHelper.userId,
             FullName = request.FullName,
             skillset = request.SkillSet,
             Experience = request.Experience,
             Education = request.Education,
-            Resumepath = request.ResumePath ?? string.Empty,
+            Resumepath = resumePath,
             LinkedInprofile = request.LinkedInProfile,
             Githubprofile = request.GitHubProfile,
             Bio = request.Bio,
@@ -74,8 +73,11 @@ public class UserRepository : IUserRepository
         };
 
         _context.Userprofiles.Add(profile);
-        _context.SaveChanges();
-
-        return Task.FromResult(new CreateUserProfileResponseDto());
+        var result = await _context.SaveChangesAsync();
+        return new CreateUserProfileResponseDto
+        {
+            Message = result > 0 ? "User profile created successfully." : "Failed to create user profile.",
+            Success = result > 0
+        };
     }
 }

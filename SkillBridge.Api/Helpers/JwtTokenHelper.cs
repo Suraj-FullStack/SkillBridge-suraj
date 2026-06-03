@@ -9,8 +9,8 @@ public class JwtTokenHelper
     private readonly int _expireMinutes;
     public JwtTokenHelper(IConfiguration configuration)
     {
-        _secretKey = configuration["AppConfig:SecretKey"];
-        var expireMinutesStr = configuration["AppConfig:TokenExpirationMinutes"];
+        _secretKey = configuration["JwtSettings:SecretKey"] ?? configuration["AppConfig:SecretKey"];
+        var expireMinutesStr = configuration["JwtSettings:TokenExpirationMinutes"] ?? configuration["AppConfig:TokenExpirationMinutes"];
         _expireMinutes = int.TryParse(expireMinutesStr, out var minutes) ? minutes : 60;
     }
     public string GenerateToken(int userId, string email, string name, string type)

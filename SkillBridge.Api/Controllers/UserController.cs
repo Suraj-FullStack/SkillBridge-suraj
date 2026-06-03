@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace SkillBridge.Api.Controllers
@@ -23,9 +24,10 @@ namespace SkillBridge.Api.Controllers
             var result = await _userRepository.LoginAsync(request);
             return result;
         }
-
-        [HttpPost("profile")]
-        public async Task<ActionResult<CreateUserProfileResponseDto>> CreateUserProfile([FromBody] CreateUserProfileRequestDto request)
+        [Authorize]
+        [HttpPost,Route("profile/create")]
+        [Consumes("multipart/form-data")]
+        public async Task<ActionResult<CreateUserProfileResponseDto>> CreateUserProfile([FromForm] CreateUserProfileRequestDto request)
         {
             var result = await _userRepository.CreateUserProfileAsync(request);
             return result;
