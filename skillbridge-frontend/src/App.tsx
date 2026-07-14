@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
-import LoginPage from "./pages/auth/Loginpage";
+import LoginPage from "./pages/auth/LoginPage";
 import Register from "./pages/auth/Register";
 import LandingPage from "./pages/jobs/Landingpage";
 import CreateJob from "./pages/admin/CreateJob";

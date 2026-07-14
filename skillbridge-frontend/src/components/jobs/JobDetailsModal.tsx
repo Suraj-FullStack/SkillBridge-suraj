@@ -56,14 +56,7 @@ export default function JobDetailModal({
   if (!job) return null;
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent 
-      className="max-w-2xl max-h-[90vh] overflow-y-auto"
-      style={{ 
-        backgroundColor: 'white',
-        opacity: 1,
-        zIndex: 110, 
-       }}
-       >
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl border-slate-200 bg-white shadow-2xl">
         <DialogHeader>
           <DialogTitle className="text-2xl">{job.title}</DialogTitle>
           <DialogDescription className="text-lg font-medium text-gray-700">
