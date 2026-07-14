@@ -24,12 +24,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const login = (userData: User) => {
     setUser(userData);
-    localStorage.setItem("token", JSON.stringify(userData.token));
+    // persist token and user for private API usage
+    localStorage.setItem("token", userData.token);
+    localStorage.setItem("user", JSON.stringify(userData));
   };
   const logout = () => {
     setUser(null);
     localStorage.removeItem("token");
+    localStorage.removeItem("user");
   };
+
+  // initialize from localStorage if available
+  useEffect(() => {
+    const raw = localStorage.getItem("user");
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw) as User;
+        setUser(parsed);
+      } catch {
+        // ignore parse errors
+      }
+    }
+  }, []);
 
   const isAuthenticated = !!user;
   const isAdmin = !!user && user.type === "Admin";

@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
-import axios from "axios";
+import { publicApi } from "@/lib/axios";
 
 interface RegisterRequestDto {
   fullName: string;
@@ -36,7 +36,7 @@ export default function Register() {
     setError("");
 
     try {
-      await axios.post("/api/user/create", formData);
+      await publicApi.post("/api/User/create", formData);
       alert("Registration successful! Please login.");
       navigate("/login");
     } catch (err: any) {
