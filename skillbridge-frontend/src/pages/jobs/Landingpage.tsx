@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Card,
   CardContent,
@@ -6,10 +6,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Search, MapPin, Briefcase, Loader2 } from "lucide-react";
+import { Search, MapPin, Briefcase, Loader2, Sparkles, TrendingUp, ShieldCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 import { publicApi } from "@/lib/axios";
 import JobDetailModal from "@/components/jobs/JobDetailsModal";
@@ -25,6 +24,29 @@ type Job = {
   deadline: string;
   description?: string;
 };
+
+type JobDto = {
+  id?: number;
+  Title?: string | null;
+  Description?: string | null;
+  Company?: string | null;
+  Location?: string | null;
+  JobType?: string | null;
+  Minimumsalary?: number | null;
+  Maximumsalary?: number | null;
+  DeadLineDate?: string | null;
+  PostedDate?: string | null;
+  isActive?: boolean;
+  title?: string | null;
+  description?: string | null;
+  company?: string | null;
+  location?: string | null;
+  jobType?: string | null;
+  minimumSalary?: number | null;
+  maximumSalary?: number | null;
+  deadline?: string | null;
+};
+
 
 const dummyJobs: Job[] = [
   {
@@ -66,61 +88,76 @@ export default function LandingPage() {
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const [error, setError] = useState<string>("");
+
+  const formatDate = (value: string) => {
+    const t = new Date(value).getTime();
+    return Number.isNaN(t) ? "—" : new Date(value).toLocaleDateString();
+  };
+
   useEffect(() => {
     const fetchJobs = async () => {
       try {
         setLoading(true);
+        setError("");
+
         // backend controller is named `JobController` -> route is /Job
-        const response = await publicApi.get<any[]>("/Job");
-        // map backend DTO to frontend shape
-        const mapped = response.data.map((j) => ({
-          id: j.id ?? j.Id,
-          title: j.title ?? j.Title,
-          company: j.company ?? j.Company,
-          location: j.location ?? j.Location,
-          jobType: j.jobType ?? j.JobType,
-          minimumSalary:
-            j.minimumSalary ?? j.Minimumsalary ?? j.MinimumSalary ?? 0,
-          maximumSalary:
-            j.maximumSalary ?? j.Maximumsalary ?? j.MaximumSalary ?? 0,
-          deadline:
-            (j.deadline ?? j.DeadLineDate ?? j.DeadlineDate) ||
-            j.deadline ||
-            new Date().toISOString(),
-          description: j.description ?? j.Description,
-        } as Job));
+        const response = await publicApi.get<JobDto[]>("/Job");
+
+        // map backend DTO to frontend shape for both camelCase and PascalCase payloads
+        const mapped: Job[] = response.data.map((j) => ({
+          id: j.id ?? 0,
+          title: j.Title ?? j.title ?? "",
+          company: j.Company ?? j.company ?? "",
+          location: j.Location ?? j.location ?? "",
+          jobType: j.JobType ?? j.jobType ?? "",
+          minimumSalary: Number(j.Minimumsalary ?? j.minimumSalary ?? 0),
+          maximumSalary: Number(j.Maximumsalary ?? j.maximumSalary ?? 0),
+          deadline: j.DeadLineDate ?? j.deadline ?? new Date().toISOString(),
+          description: j.Description ?? j.description ?? undefined,
+        }));
+
         setJobs(mapped);
-      }catch (error) {
-        console.error("Error fetching jobs:", error);
-      }finally {
-        setLoading(false);  
+      } catch (e: any) {
+        setError(e?.response?.data?.message || "Failed to load jobs.");
+      } finally {
+        setLoading(false);
       }
     };
+
     fetchJobs();
   }, []);
 
-  const filteredJobs = jobs.filter(
-    (job) =>
-      job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.location.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
+  const filteredJobs = useMemo(() => {
+    const q = searchTerm.trim().toLowerCase();
+    if (!q) return jobs;
+    return jobs.filter(
+      (job) =>
+        job.title.toLowerCase().includes(q) ||
+        job.company.toLowerCase().includes(q) ||
+        job.location.toLowerCase().includes(q),
+    );
+  }, [jobs, searchTerm]);
 
   const openJobDetails = (job: Job) => {
     setSelectedJob(job);
     setIsModalOpen(true);
   };
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Hero Section */}
+    <div className="min-h-screen bg-slate-50 text-slate-800">
       <div className="relative overflow-hidden">
-        <div className="bg-gradient-to-r from-sky-600 via-indigo-600 to-violet-700 text-white py-24">
-          <div className="max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+        <div className="bg-gradient-to-r from-sky-700 via-indigo-700 to-violet-800 text-white py-24 md:py-32">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.2),transparent_35%)]" />
+          <div className="relative max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
             <div className="space-y-6">
-              <h1 className="text-4xl md:text-5xl font-extrabold leading-tight animate__animated animate__fadeInLeft">
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-sm backdrop-blur">
+                <Sparkles className="w-4 h-4" />
+                Trusted by modern employers and talent
+              </div>
+              <h1 className="text-4xl md:text-5xl font-extrabold leading-tight">
                 Elevate Your Career with Elevate Workforce
               </h1>
-              <p className="text-lg md:text-xl text-sky-100 max-w-xl animate__animated animate__fadeInUp">
+              <p className="text-lg md:text-xl text-sky-100 max-w-xl">
                 Discover curated opportunities, apply quickly, and grow your career with top employers.
               </p>
 
@@ -129,34 +166,82 @@ export default function LandingPage() {
                   <Button size="lg" className="shadow-lg">Browse Jobs</Button>
                 </a>
                 <Link to="/admin/jobs/create" className="inline-block">
-                  <Button variant="outline" size="lg">Post a Job</Button>
+                  <Button variant="outline" size="lg" className="border-white/40 bg-white/10 text-white hover:bg-white/20">
+                    Post a Job
+                  </Button>
                 </Link>
               </div>
 
-              <div className="mt-4 text-sm text-sky-100">
-                <Search className="inline-block mr-2 align-middle" />
-                Try: "Frontend", "Remote", "Kathmandu"
+              <div className="flex flex-wrap gap-4 text-sm text-sky-100">
+                <div className="flex items-center gap-2"><TrendingUp className="w-4 h-4" /> Fast-moving roles</div>
+                <div className="flex items-center gap-2"><ShieldCheck className="w-4 h-4" /> Verified employers</div>
               </div>
             </div>
 
-            <div className="hidden md:block">
-              <div className="bg-white/10 rounded-xl p-6 backdrop-blur-md animate__animated animate__zoomIn">
-                <div className="space-y-3 text-sky-50">
-                  <div className="text-sm">Featured</div>
-                  <h3 className="font-semibold">Senior Software Engineer</h3>
-                  <div className="text-sm opacity-90">TechVision Nepal • Kathmandu</div>
-                  <div className="mt-3 text-xs opacity-95">NPR 80,000 - 120,000 • Apply by 2026-06-15</div>
-                </div>
+            <div className="rounded-2xl border border-white/20 bg-white/10 p-6 backdrop-blur-md shadow-2xl">
+              <div className="space-y-3 text-sky-50">
+                <div className="text-sm uppercase tracking-[0.25em] text-sky-200">Featured</div>
+                <h3 className="font-semibold text-2xl">Senior Software Engineer</h3>
+                <div className="text-sm opacity-90">TechVision Nepal • Kathmandu</div>
+                <div className="mt-3 text-sm opacity-95">NPR 80,000 - 120,000 • Apply by 2026-06-15</div>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Jobs Section */}
       <div id="jobs" className="max-w-6xl mx-auto px-4 py-12">
-        <h2 className="text-3xl font-semibold mb-8">Featured Jobs</h2>
-          {loading && <Loader2 className="animate-spin mx-auto mb-6" />}
+        <div className="grid gap-4 md:grid-cols-3 mb-8">
+          {[
+            { label: "Open roles", value: "120+" },
+            { label: "Verified partners", value: "40+" },
+            { label: "Fast response", value: "24h" },
+          ].map((item) => (
+            <div key={item.label} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+              <div className="text-2xl font-semibold text-sky-700">{item.value}</div>
+              <div className="text-sm text-slate-600">{item.label}</div>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
+          <div>
+            <h2 className="text-3xl font-semibold">Job Opportunities</h2>
+            <p className="text-sm text-gray-600 mt-1">
+              Explore roles from Elevate Workforce Solutions partners.
+            </p>
+          </div>
+
+          <div className="w-full sm:w-80">
+            <div className="flex items-center gap-2 bg-white rounded-xl border px-3 py-2 shadow-sm">
+              <Search className="w-4 h-4 text-gray-500" />
+              <input
+                className="w-full bg-transparent outline-none text-sm"
+                placeholder='Search by title, company, or location...'
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
+
+        {loading && <Loader2 className="animate-spin mx-auto mb-6" />}
+        {!loading && error && (
+          <div className="max-w-3xl mx-auto mb-6">
+            <div className="p-4 rounded-xl border bg-red-50 text-red-700 text-sm">
+              {error}
+            </div>
+          </div>
+        )}
+
+        {!loading && !error && filteredJobs.length === 0 && (
+          <div className="max-w-3xl mx-auto mb-6">
+            <div className="p-4 rounded-xl border bg-white text-gray-700 text-sm">
+              No jobs found for "{searchTerm}".
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredJobs.map((job) => (
             <Card key={job.id} className="hover:shadow-lg transition-shadow">
@@ -181,7 +266,7 @@ export default function LandingPage() {
                   </div>
 
                   <p className="text-sm text-gray-500">
-                    Deadline: {new Date(job.deadline).toLocaleDateString()}
+                    Deadline: {formatDate(job.deadline)}
                   </p>
 
                   <Button className="w-full mt-4" onClick={()=> openJobDetails(job)}>
@@ -193,6 +278,26 @@ export default function LandingPage() {
           ))}
         </div>
       </div>
+      <section className="mt-16 rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+        <div className="grid gap-8 md:grid-cols-[1.2fr_0.8fr] items-center">
+          <div>
+            <h3 className="text-2xl font-semibold">Why job seekers love Elevate Workforce</h3>
+            <p className="mt-2 text-sm text-slate-600">
+              From tailored search to quick applications and trusted employers, everything is built to help candidates move faster.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {['Remote friendly', 'Skill-based matching', 'Direct employer contact', 'Career growth'].map((chip) => (
+              <span key={chip} className="rounded-full bg-sky-50 px-3 py-1 text-sm text-sky-700">{chip}</span>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <footer className="mt-10 border-t border-slate-200 bg-white/70 py-6 text-center text-sm text-slate-600">
+        Elevate Workforce Solutions • Discover roles that fit your ambition.
+      </footer>
+
       <JobDetailModal 
       job ={selectedJob}
       open={isModalOpen}

@@ -12,15 +12,15 @@ export default function Header() {
   };
 
   return (
-    <header className="bg-white shadow-sm">
-      <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+    <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/90 backdrop-blur">
+      <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
         <div className="flex items-center gap-4">
-          <Link to="/" className="text-xl font-bold text-sky-600">
+          <Link to="/" className="text-xl font-semibold text-sky-700">
             Elevate Workforce
           </Link>
-          <nav className="hidden sm:flex gap-3 text-sm text-gray-600">
-            <Link to="/">Home</Link>
-            {isAdmin && <Link to="/admin/jobs/create">Create Job</Link>}
+          <nav className="hidden sm:flex gap-3 text-sm text-slate-600">
+            <Link to="/" className="transition hover:text-sky-700">Home</Link>
+            {isAdmin && <Link to="/admin/jobs/create" className="transition hover:text-sky-700">Create Job</Link>}
           </nav>
         </div>
 
@@ -36,7 +36,7 @@ export default function Header() {
             </>
           ) : (
             <div className="flex items-center gap-3">
-              <div className="text-sm text-gray-700">{user?.fullName}</div>
+              <div className="hidden sm:block text-sm font-medium text-slate-700">{user?.fullName}</div>
               <Button variant="ghost" size="sm" onClick={handleLogout}>
                 Logout
               </Button>

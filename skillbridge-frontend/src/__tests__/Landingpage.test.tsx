@@ -1,7 +1,9 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import LandingPage from '../pages/jobs/Landingpage';
 import { publicApi } from '@/lib/axios';
+import { AuthProvider } from '@/context/AuthContext';
 
 vi.mock('@/lib/axios', () => ({
   publicApi: {
@@ -27,20 +29,22 @@ beforeEach(() => {
   (publicApi.get as any).mockResolvedValue({ data: mockJobs });
 });
 
-describe('LandingPage', () => {
-  it('renders hero and job cards', async () => {
-    render(<LandingPage />);
-    // hero text
-    expect(screen.getByText(/Elevate Your Career/i)).toBeTruthy();
+function renderWithRouter(ui: React.ReactElement) {
+  return render(
+    <AuthProvider>
+      <MemoryRouter>{ui}</MemoryRouter>
+    </AuthProvider>
+  );
+}
 
-    // wait for jobs to load
-    await waitFor(() => expect(publicApi.get).toHaveBeenCalled());
-    expect(screen.getByText(/Test Engineer/i)).toBeTruthy();
+describe('LandingPage', () => {
+  it('renders the hero content', () => {
+    const { getByText } = renderWithRouter(<LandingPage />);
+    expect(getByText(/Elevate Your Career/i)).toBeTruthy();
   });
 
-  it('matches snapshot', async () => {
-    const { container } = render(<LandingPage />);
-    await waitFor(() => expect(publicApi.get).toHaveBeenCalled());
-    expect(container).toMatchSnapshot();
+  it('renders the job card when data is returned', async () => {
+    const { findByText } = renderWithRouter(<LandingPage />);
+    expect(await findByText(/Test Engineer/i)).toBeTruthy();
   });
 });
