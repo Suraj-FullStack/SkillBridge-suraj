@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Search, MapPin, Briefcase, Loader2 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { publicApi } from "@/lib/axios";
 import JobDetailModal from "@/components/jobs/JobDetailsModal";
 
@@ -22,6 +23,7 @@ type Job = {
   minimumSalary: number;
   maximumSalary: number;
   deadline: string;
+  description?: string;
 };
 
 const dummyJobs: Job[] = [
@@ -68,8 +70,26 @@ export default function LandingPage() {
     const fetchJobs = async () => {
       try {
         setLoading(true);
-        const response = await publicApi.get<Job[]>("/jobs");
-        setJobs(response.data);
+        // backend controller is named `JobController` -> route is /Job
+        const response = await publicApi.get<any[]>("/Job");
+        // map backend DTO to frontend shape
+        const mapped = response.data.map((j) => ({
+          id: j.id ?? j.Id,
+          title: j.title ?? j.Title,
+          company: j.company ?? j.Company,
+          location: j.location ?? j.Location,
+          jobType: j.jobType ?? j.JobType,
+          minimumSalary:
+            j.minimumSalary ?? j.Minimumsalary ?? j.MinimumSalary ?? 0,
+          maximumSalary:
+            j.maximumSalary ?? j.Maximumsalary ?? j.MaximumSalary ?? 0,
+          deadline:
+            (j.deadline ?? j.DeadLineDate ?? j.DeadlineDate) ||
+            j.deadline ||
+            new Date().toISOString(),
+          description: j.description ?? j.Description,
+        } as Job));
+        setJobs(mapped);
       }catch (error) {
         console.error("Error fetching jobs:", error);
       }finally {
@@ -93,27 +113,48 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-20">
-        <div className="max-w-6xl mx-auto text-center px-4">
-          <h1 className="text-5xl font-bold mb-4">Find Your Dream Job</h1>
-          <p className="text-xl mb-8">
-            Discover opportunities that match your skills
-          </p>
+      <div className="relative overflow-hidden">
+        <div className="bg-gradient-to-r from-sky-600 via-indigo-600 to-violet-700 text-white py-24">
+          <div className="max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            <div className="space-y-6">
+              <h1 className="text-4xl md:text-5xl font-extrabold leading-tight animate__animated animate__fadeInLeft">
+                Elevate Your Career with Elevate Workforce
+              </h1>
+              <p className="text-lg md:text-xl text-sky-100 max-w-xl animate__animated animate__fadeInUp">
+                Discover curated opportunities, apply quickly, and grow your career with top employers.
+              </p>
 
-          <div className="max-w-md mx-auto relative">
-            <Search className="absolute left-4 top-3.5 text-gray-400" />
-            <Input
-              placeholder="Search jobs, companies, or locations..."
-              className="pl-12 py-6 text-lg"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                <a href="#jobs" className="inline-block">
+                  <Button size="lg" className="shadow-lg">Browse Jobs</Button>
+                </a>
+                <Link to="/admin/jobs/create" className="inline-block">
+                  <Button variant="outline" size="lg">Post a Job</Button>
+                </Link>
+              </div>
+
+              <div className="mt-4 text-sm text-sky-100">
+                <Search className="inline-block mr-2 align-middle" />
+                Try: "Frontend", "Remote", "Kathmandu"
+              </div>
+            </div>
+
+            <div className="hidden md:block">
+              <div className="bg-white/10 rounded-xl p-6 backdrop-blur-md animate__animated animate__zoomIn">
+                <div className="space-y-3 text-sky-50">
+                  <div className="text-sm">Featured</div>
+                  <h3 className="font-semibold">Senior Software Engineer</h3>
+                  <div className="text-sm opacity-90">TechVision Nepal • Kathmandu</div>
+                  <div className="mt-3 text-xs opacity-95">NPR 80,000 - 120,000 • Apply by 2026-06-15</div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Jobs Section */}
-      <div className="max-w-6xl mx-auto px-4 py-12">
+      <div id="jobs" className="max-w-6xl mx-auto px-4 py-12">
         <h2 className="text-3xl font-semibold mb-8">Featured Jobs</h2>
           {loading && <Loader2 className="animate-spin mx-auto mb-6" />}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
